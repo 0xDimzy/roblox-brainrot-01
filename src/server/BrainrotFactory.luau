@@ -161,4 +161,178 @@ function BrainrotFactory.giveCrown(character)
 	crown.Position = head.Position + Vector3.new(0, 0.9, 0)
 end
 
+-- v2.5: build a pet companion model from a Config.PETS definition. Pets
+-- are half the size of a brainrot, with the same chunky recipe — body,
+-- head, eyes, ears and a tail — plus a floating name billboard, so the
+-- follower reads as a smaller sibling of the cast. The server spawns
+-- these for the pet park display; the client builds its own copy for the
+-- follower that trails the player (see Game.client.luau).
+function BrainrotFactory.createPetModel(petDef)
+	local model = Instance.new("Model")
+	model.Name = petDef.name
+
+	local body = part("Body", Vector3.new(1.2, 1, 0.8), petDef.color)
+	body.Material = Enum.Material.Neon
+	body.CanCollide = false
+	body.Parent = model
+	model.PrimaryPart = body
+
+	local head = part("Head", Vector3.new(0.95, 0.8, 0.8), petDef.color)
+	head.Position = Vector3.new(0, 0.9, 0)
+	head.Parent = model
+
+	local eyeColor = Color3.fromRGB(20, 20, 20)
+	local eyeL = part("EyeL", Vector3.new(0.18, 0.25, 0.1), eyeColor)
+	eyeL.Position = Vector3.new(-0.22, 0.95, 0.42)
+	eyeL.Parent = model
+	local eyeR = part("EyeR", Vector3.new(0.18, 0.25, 0.1), eyeColor)
+	eyeR.Position = Vector3.new(0.22, 0.95, 0.42)
+	eyeR.Parent = model
+
+	local earL = part("EarL", Vector3.new(0.25, 0.4, 0.25), petDef.color)
+	earL.Position = Vector3.new(-0.35, 1.4, 0)
+	earL.Parent = model
+	local earR = part("EarR", Vector3.new(0.25, 0.4, 0.25), petDef.color)
+	earR.Position = Vector3.new(0.35, 1.4, 0)
+	earR.Parent = model
+
+	local tail = part("Tail", Vector3.new(0.25, 0.25, 0.7), petDef.color)
+	tail.Position = Vector3.new(0, 0.1, -0.7)
+	tail.Parent = model
+
+	-- Weld everything to the body so the pet moves as one.
+	for _, child in ipairs(model:GetChildren()) do
+		if child ~= body and child:IsA("BasePart") then
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = body
+			weld.Part1 = child
+			weld.Parent = body
+		end
+	end
+
+	-- Billboard: the pet's name and its income bonus, readable at a glance.
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "PetLabel"
+	billboard.Size = UDim2.fromOffset(140, 36)
+	billboard.StudsOffset = Vector3.new(0, 1.9, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = body
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(1, 0, 0.6, 0)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Text = Utils.shorten(model.Name, 18)
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	nameLabel.TextStrokeTransparency = 0
+	nameLabel.TextScaled = true
+	nameLabel.Font = Enum.Font.FredokaOne
+	nameLabel.Parent = billboard
+
+	local bonusLabel = Instance.new("TextLabel")
+	bonusLabel.Position = UDim2.new(0, 0, 0.6, 0)
+	bonusLabel.Size = UDim2.new(1, 0, 0.4, 0)
+	bonusLabel.BackgroundTransparency = 1
+	bonusLabel.Text = "+" .. tostring(math.floor(petDef.bonus * 100 + 0.5)) .. "% income"
+	bonusLabel.TextColor3 = Color3.fromRGB(120, 255, 140)
+	bonusLabel.TextStrokeTransparency = 0
+	bonusLabel.TextScaled = true
+	bonusLabel.Font = Enum.Font.FredokaOne
+	bonusLabel.Parent = billboard
+
+	model:SetAttribute("PetId", petDef.id)
+	return model
+end
+
+-- v3: the raid boss — a brainrot at 3x scale, crowned, with a red
+-- glow and an HP billboard over its head. RaidService spawns one per
+-- raid on the raid pad; the billboard's BossHpText is updated by
+-- RaidService.tryHit as players land damage on it.
+function BrainrotFactory.createBossModel(def)
+	local model = BrainrotFactory.createBrainrot(def, 1)
+	model.Name = "BOSS: " .. def.name
+	-- Scale every part up 3x around the body's center.
+	for _, child in ipairs(model:GetDescendants()) do
+		if child:IsA("BasePart") then
+			child.Size *= 3
+		end
+	end
+	-- A crown on the boss's head, bigger than a rebirth crown.
+	local head = model:FindFirstChild("Head")
+	if head then
+		local crown = part("BossCrown", Vector3.new(4.2, 1.5, 4.2), Color3.fromRGB(255, 215, 0))
+		crown.Material = Enum.Material.Neon
+		crown.Parent = model
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = head
+		weld.Part1 = crown
+		weld.Parent = head
+		crown.Position = head.Position + Vector3.new(0, 2.7, 0)
+	end
+	-- The HP billboard: a wide bar label over the boss, readable from
+	-- the far side of the plaza. RaidService updates BossHpText.
+	local body = model.PrimaryPart
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "BossHpLabel"
+	billboard.Size = UDim2.fromOffset(320, 48)
+	billboard.StudsOffset = Vector3.new(0, 10, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = body
+	local hpText = Instance.new("TextLabel")
+	hpText.Name = "BossHpText"
+	hpText.Size = UDim2.new(1, 0, 1, 0)
+	hpText.BackgroundTransparency = 1
+	hpText.Text = "BOSS HP"
+	hpText.TextColor3 = Color3.fromRGB(255, 80, 80)
+	hpText.TextStrokeTransparency = 0
+	hpText.TextScaled = true
+	hpText.Font = Enum.Font.FredokaOne
+	hpText.Parent = billboard
+	model:SetAttribute("IsBoss", true)
+	return model
+end
+
+-- v3: a gold coin for the coin rush — a spinning neon cylinder with a
+-- ClickDetector, so a player collects it by clicking the world. The
+-- value is a display attribute; MinigameService pays the real cash.
+function BrainrotFactory.createCoinModel()
+	local model = Instance.new("Model")
+	model.Name = "GoldCoin"
+	local coin = part("Coin", Vector3.new(2, 0.4, 2), Color3.fromRGB(255, 215, 0), Enum.Material.Neon)
+	coin.Shape = Enum.PartType.Cylinder
+	coin.CanCollide = false
+	coin.Parent = model
+	model.PrimaryPart = coin
+	-- A star on the coin's face so it reads as a prize, not a plate.
+	local star = part("CoinStar", Vector3.new(1, 0.5, 1), Color3.fromRGB(255, 240, 150), Enum.Material.Neon)
+	star.Position = Vector3.new(0, 0.2, 0)
+	star.Parent = model
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = coin
+	weld.Part1 = star
+	weld.Parent = coin
+	-- The click target: the server's tryCollect runs on MouseClick.
+	local detector = Instance.new("ClickDetector")
+	detector.MaxActivationDistance = 32
+	detector.Parent = coin
+	-- A floating value label so players know what a click is worth.
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "CoinLabel"
+	billboard.Size = UDim2.fromOffset(120, 30)
+	billboard.StudsOffset = Vector3.new(0, 2, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = coin
+	local valueText = Instance.new("TextLabel")
+	valueText.Size = UDim2.new(1, 0, 1, 0)
+	valueText.BackgroundTransparency = 1
+	valueText.Text = "+$250"
+	valueText.TextColor3 = Color3.fromRGB(255, 215, 0)
+	valueText.TextStrokeTransparency = 0
+	valueText.TextScaled = true
+	valueText.Font = Enum.Font.FredokaOne
+	valueText.Parent = billboard
+	model:SetAttribute("IsCoin", true)
+	model:SetAttribute("CoinValue", 250)
+	return model
+end
+
 return BrainrotFactory

@@ -16,6 +16,16 @@ local StealService = {}
 local DataService
 local BaseService
 local WorldBuilder
+-- v2.5: QuestService is optional here (guarded like in ConveyorService),
+-- so a claim with no quest service still claims, it just feeds no quest.
+local QuestService
+-- v3: RaidService is optional here too — a slap near the raid pad
+-- counts as boss damage when the service is registered, and a slap
+-- anywhere else is just a slap.
+local RaidService
+-- v3: TradeService is optional here — a brainrot locked in a live
+-- trade offer cannot be stolen out from under the negotiation.
+local TradeService
 
 local SLAP_RANGE = 9
 local SLAP_COOLDOWN = 1.5
@@ -109,6 +119,9 @@ function StealService.init(services)
 	DataService = services.DataService
 	BaseService = services.BaseService
 	WorldBuilder = services.WorldBuilder
+	QuestService = services.QuestService
+	RaidService = services.RaidService
+	TradeService = services.TradeService
 
 	services.Remotes.StealBrainrot.OnServerEvent:Connect(function(player, model)
 		StealService.trySteal(player, model)
@@ -190,6 +203,12 @@ function StealService.trySteal(player, model)
 		announceTo(player, "That base is locked!")
 		return
 	end
+	-- v3: a brainrot in a live trade offer is off the table — stealing
+	-- it would break a negotiation both traders already agreed to.
+	if TradeService and TradeService.isOffered(model) then
+		announceTo(player, "That brainrot is in a trade offer right now!")
+		return
+	end
 
 	local wasOwned = model:GetAttribute("State") == "Owned"
 	if wasOwned then
@@ -238,6 +257,11 @@ function StealService.tryClaim(player)
 	model:SetAttribute("Owner", player.Name)
 	model.PrimaryPart.Anchored = true
 	DataService.addOwned(state, model)
+	state.Steals += 1 -- v2: feeds the leaderboard's steals count.
+	-- v2.5: every claimed steal feeds the daily "steal" quest.
+	if QuestService then
+		QuestService.addProgress(player, "steal", 1)
+	end
 	BaseService.placeOnPlot(state.PlotIndex, model, WorldBuilder)
 	local def = BrainrotData.getById(model:GetAttribute("BrainrotId"))
 	announceTo(player, "Claimed " .. (def and BrainrotData.displayName(def, model:GetAttribute("MutationIndex") or 1) or "brainrot") .. " for your base!")
@@ -245,6 +269,10 @@ end
 
 -- The slap: knock a carried brainrot out of the nearest thief.
 function StealService.trySlap(player)
+	local state = DataService.get(player) -- v2: slaps count toward the leaderboard.
+	if not state then
+		return
+	end
 	local now = os.clock()
 	if lastSlap[player] and now - lastSlap[player] < SLAP_COOLDOWN then
 		return
@@ -265,6 +293,12 @@ function StealService.trySlap(player)
 					-- Fling the thief and drop their loot.
 					otherRoot.AssemblyLinearVelocity = (otherRoot.Position - root.Position).Unit * 45 + Vector3.new(0, 30, 0)
 					StealService.dropCarried(other, otherState)
+					state.Slaps += 1 -- v2: feeds the leaderboard's slaps count.
+					-- v3: a slap near the raid pad is also a boss hit —
+					-- the slap tool pulls double duty during a raid.
+					if RaidService then
+						RaidService.recordSlap(player)
+					end
 					announceTo(player, "SLAP! You knocked the brainrot loose!")
 					announceTo(other, player.Name .. " slapped your steal away!")
 					return

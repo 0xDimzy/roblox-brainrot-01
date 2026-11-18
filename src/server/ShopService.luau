@@ -68,9 +68,40 @@ function ShopService.buy(player, itemId)
 	elseif itemId == "Trap" then
 		ShopService.placeTrap(state)
 		announceTo(player, "Slime Trap set at your base entrance!")
+	elseif itemId == "Freeze" then
+		ShopService.placeFreezeTrap(state)
+		announceTo(player, "Freeze Trap set! Thieves crossing it freeze solid for 4s!")
 	elseif itemId == "Egg" then
 		ShopService.hatchEgg(player, state)
+	elseif itemId == "RaidPotion" then
+		-- v3: +50% boss damage for 5 minutes, from the moment of
+		-- purchase. Buying another one refreshes the timer.
+		state.RaidPotionUntil = os.clock() + Config.RAID_POTION_SECONDS
+		announceTo(player, "Raid Potion drunk! +50% boss damage for 5 minutes — get to the raid pad!")
+	elseif itemId == "TradePass" then
+		-- v3: the next 3 trades are fee-free. The pass is spent one
+		-- use per completed trade, in TradeService.execute.
+		state.TradePassUses = (state.TradePassUses or 0) + Config.TRADE_PASS_USES
+		announceTo(player, "Trade Pass bought! Your next " .. tostring(Config.TRADE_PASS_USES) .. " trades are fee-free.")
+	elseif itemId == "SkyKey" then
+		-- v3: one teleport straight up to the Sky Plaza, spent the
+		-- moment it is used. No lift queue, no waiting for the pad.
+		ShopService.teleportToSky(player)
+		announceTo(player, "Sky Key used! Welcome to the Sky Plaza — plots here earn +25%!")
 	end
+end
+
+-- v3: teleport a player to the Sky Plaza's return pad (the safe
+-- landing spot on the slab). The character must exist and have a
+-- HumanoidRootPart; otherwise the key is still spent — the shop
+-- already took the cash, so this fails soft with a toast.
+function ShopService.teleportToSky(player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+	root.CFrame = CFrame.new(Config.SKY_RETURN_POSITION + Vector3.new(0, 3, 0))
 end
 
 function ShopService.placeTrap(state)
@@ -116,6 +147,51 @@ function ShopService.placeTrap(state)
 			trap:Destroy()
 		end
 		state.Traps = math.max(0, state.Traps - 1)
+	end)
+end
+
+-- v2: Freeze Trap — an ice-blue pad at the base entrance. A thief
+-- crossing it is frozen solid (walk speed 0) for FREEZE_SECONDS, long
+-- enough for the owner to slap the steal loose. Melts after two minutes.
+function ShopService.placeFreezeTrap(state)
+	local plotCenter = BaseService.plotCenter(state.PlotIndex)
+	local trap = Instance.new("Part")
+	trap.Name = "FreezeTrap"
+	trap.Size = Vector3.new(6, 0.6, 6)
+	trap.Color = Color3.fromRGB(120, 200, 255)
+	trap.Material = Enum.Material.Ice
+	trap.Transparency = 0.25
+	trap.Anchored = true
+	trap.CanCollide = false
+	trap.Position = plotCenter + Vector3.new(0, 1.3, 12)
+	trap.Parent = Workspace
+	local debounce = {}
+	trap.Touched:Connect(function(hit)
+		local character = hit.Parent
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		local thief = humanoid and game:GetService("Players"):GetPlayerFromCharacter(character)
+		if not thief or debounce[thief] then
+			return
+		end
+		local thiefState = DataService.get(thief)
+		if not thiefState or thiefState.PlotIndex == state.PlotIndex then
+			return
+		end
+		debounce[thief] = true
+		local oldSpeed = humanoid.WalkSpeed
+		humanoid.WalkSpeed = 0
+		announceTo(thief, "Freeze Trap! You are frozen solid!")
+		task.delay(Config.FREEZE_SECONDS, function()
+			if humanoid.Parent then
+				humanoid.WalkSpeed = oldSpeed
+			end
+			debounce[thief] = nil
+		end)
+	end)
+	task.delay(120, function()
+		if trap.Parent then
+			trap:Destroy()
+		end
 	end)
 end
 

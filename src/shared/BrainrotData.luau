@@ -9,8 +9,10 @@ BrainrotData.RARITIES = {
 	{ name = "Rare", color = Color3.fromRGB(93, 173, 226), weight = 25, costMult = 2.5 },
 	{ name = "Epic", color = Color3.fromRGB(175, 122, 197), weight = 12, costMult = 6 },
 	{ name = "Legendary", color = Color3.fromRGB(255, 195, 0), weight = 5, costMult = 14 },
-	{ name = "Mythic", color = Color3.fromRGB(255, 87, 51), weight = 2, costMult = 32 },
-	{ name = "Secret", color = Color3.fromRGB(0, 255, 200), weight = 1, costMult = 70 },
+	{ name = "Mythic", color = Color3.fromRGB(255, 87, 51), weight = 3, costMult = 32 },
+	{ name = "Secret", color = Color3.fromRGB(0, 255, 200), weight = 2, costMult = 70 },
+	-- v2: Transcendent sits above Secret — rarer than a rainbow, richer than Ohio.
+	{ name = "Transcendent", color = Color3.fromRGB(255, 215, 0), weight = 1, costMult = 150 },
 }
 
 BrainrotData.MUTATIONS = {
@@ -39,7 +41,52 @@ BrainrotData.CAST = {
 	{ id = "baby-gronk", name = "Baby Gronk 2.0", rarity = 5, rate = 1400, color = Color3.fromRGB(255, 120, 120), joke = "Rizzed up the whole boulevard." },
 	{ id = "skibidi-overlord", name = "Skibidi Overlord", rarity = 6, rate = 2500, color = Color3.fromRGB(60, 220, 200), joke = "He flushed the old meta." },
 	{ id = "ohio-boss", name = "Ohio Final Boss", rarity = 6, rate = 5000, color = Color3.fromRGB(200, 60, 220), joke = "Only in Ohio. Only final." },
+	-- v2 cast: 10 more characters, 17 -> 27, with a new Transcendent tier.
+	{ id = "waffle-wally", name = "Waffle Wally", rarity = 1, rate = 7, color = Color3.fromRGB(220, 170, 90), joke = "Syrup-powered since birth." },
+	{ id = "banana-barry", name = "Banana Barry", rarity = 1, rate = 11, color = Color3.fromRGB(255, 235, 80), joke = "Peels out. Literally." },
+	{ id = "milkman-mike", name = "Milkman Mike", rarity = 1, rate = 13, color = Color3.fromRGB(240, 240, 240), joke = "Delivers. Never explains." },
+	{ id = "disco-dave", name = "Disco Dave", rarity = 2, rate = 18, color = Color3.fromRGB(255, 120, 200), joke = "Stayin' alive, stayin' paid." },
+	{ id = "grandma-glitch", name = "Grandma Glitch", rarity = 2, rate = 26, color = Color3.fromRGB(180, 140, 255), joke = "Bakes cookies. Hacks time." },
+	{ id = "sir-reginald-frog", name = "Sir Reginald Frog", rarity = 3, rate = 90, color = Color3.fromRGB(80, 200, 140), joke = "Ribbits in four languages." },
+	{ id = "queen-queso", name = "Queen Queso", rarity = 4, rate = 320, color = Color3.fromRGB(255, 200, 40), joke = "Melts hearts. Taxes nachos." },
+	{ id = "doctor-doomscroll", name = "Doctor Doomscroll", rarity = 5, rate = 1100, color = Color3.fromRGB(140, 80, 220), joke = "One more video. Just one more." },
+	{ id = "tax-man", name = "The Tax Man", rarity = 6, rate = 3500, color = Color3.fromRGB(60, 60, 60), joke = "He always collects." },
+	{ id = "ceo-of-ohio", name = "CEO of Ohio", rarity = 7, rate = 9000, color = Color3.fromRGB(255, 215, 0), joke = "Owns Ohio. All of it." },
+	-- v2.5 cast: 10 more characters, 27 -> 37, across every rarity.
+	{ id = "captain-couch", name = "Captain Couch", rarity = 1, rate = 8, color = Color3.fromRGB(150, 100, 60), joke = "Sits. Earns. Never leaves." },
+	{ id = "bubble-brian", name = "Bubble Brian", rarity = 1, rate = 10, color = Color3.fromRGB(140, 200, 255), joke = "Pops. Reforms. Profits." },
+	{ id = "grandpa-gravy", name = "Grandpa Gravy", rarity = 2, rate = 20, color = Color3.fromRGB(190, 150, 90), joke = "Ladles out the lore." },
+	{ id = "mc-microwave", name = "MC Microwave", rarity = 2, rate = 28, color = Color3.fromRGB(200, 200, 200), joke = "Beep beep. Bars." },
+	{ id = "baron-bagel", name = "Baron Von Bagel", rarity = 3, rate = 95, color = Color3.fromRGB(230, 180, 110), joke = "Holes in his plans. None in his bagel." },
+	{ id = "lady-lawnmower", name = "Lady Lawnmower", rarity = 3, rate = 130, color = Color3.fromRGB(90, 180, 90), joke = "Cuts grass. Cuts checks." },
+	{ id = "sultan-seltzer", name = "Sultan of Seltzer", rarity = 4, rate = 340, color = Color3.fromRGB(150, 220, 255), joke = "Fizzy. Fabulous. Filthy rich." },
+	{ id = "madame-meme", name = "Madame Meme", rarity = 4, rate = 420, color = Color3.fromRGB(255, 120, 220), joke = "She saw the format first." },
+	{ id = "void-vic", name = "Void Vic", rarity = 5, rate = 1200, color = Color3.fromRGB(40, 40, 60), joke = "Stares back. Pays forward." },
+	{ id = "the-algorithm", name = "The Algorithm", rarity = 7, rate = 12000, color = Color3.fromRGB(255, 215, 0), joke = "It knows what you earn next." },
+	-- v3 cast: 15 more characters, 37 -> 52, across every rarity,
+	-- including two new Transcendents at the very top of the ladder.
+	{ id = "sir-soggy", name = "Sir Soggy", rarity = 1, rate = 5, color = Color3.fromRGB(120, 160, 200), joke = "Left in the rain. Still billing." },
+	{ id = "mayo-marge", name = "Mayo Marge", rarity = 1, rate = 12, color = Color3.fromRGB(250, 250, 230), joke = "Spreads the wealth. Literally." },
+	{ id = "duke-dumpster", name = "Duke Dumpster", rarity = 1, rate = 14, color = Color3.fromRGB(90, 120, 90), joke = "One man's trash. His treasure." },
+	{ id = "professor-pickle-jar", name = "Professor Pickle Jar", rarity = 2, rate = 24, color = Color3.fromRGB(110, 190, 70), joke = "Brined for knowledge." },
+	{ id = "lady-lamp", name = "Lady Lamp", rarity = 2, rate = 32, color = Color3.fromRGB(255, 240, 150), joke = "Lights the way. Charges rent." },
+	{ id = "captain-croissant", name = "Captain Croissant", rarity = 2, rate = 34, color = Color3.fromRGB(230, 190, 110), joke = "Flaky. Fearless. French." },
+	{ id = "baroness-bubblewrap", name = "Baroness Bubblewrap", rarity = 3, rate = 100, color = Color3.fromRGB(180, 220, 255), joke = "Pops under pressure. Pays anyway." },
+	{ id = "doctor-donut", name = "Doctor Donut", rarity = 3, rate = 140, color = Color3.fromRGB(255, 170, 200), joke = "Sprinkles. Scalpel. Same thing." },
+	{ id = "general-gravy-boat", name = "General Gravy Boat", rarity = 3, rate = 160, color = Color3.fromRGB(170, 120, 60), joke = "Sails the Sunday roast." },
+	{ id = "queen-quinoa", name = "Queen Quinoa", rarity = 4, rate = 360, color = Color3.fromRGB(220, 200, 160), joke = "A superfood. A super landlord." },
+	{ id = "lord-lawn-flamingo", name = "Lord Lawn Flamingo", rarity = 4, rate = 450, color = Color3.fromRGB(255, 120, 180), joke = "One leg in. All the way rich." },
+	{ id = "madame-midnight-snack", name = "Madame Midnight Snack", rarity = 5, rate = 1300, color = Color3.fromRGB(80, 60, 120), joke = "Strikes at 2am. Tips well." },
+	{ id = "the-intern", name = "The Intern", rarity = 6, rate = 4200, color = Color3.fromRGB(200, 200, 220), joke = "Unpaid. Unstoppable. Unbothered." },
+	{ id = "supreme-ohio-overlord", name = "Supreme Ohio Overlord", rarity = 7, rate = 15000, color = Color3.fromRGB(255, 215, 0), joke = "Ohio's final form. It has a crown." },
+	{ id = "mega-ohio-boss", name = "Mega Ohio Final Boss", rarity = 7, rate = 18000, color = Color3.fromRGB(255, 60, 60), joke = "The raid boss. The whole raid." },
 }
+
+-- v2.5: how many characters are in the cast (37 after the v2.5 additions).
+-- v3: 52 after the v3 additions — 15 new faces, two of them Transcendent.
+function BrainrotData.count()
+	return #BrainrotData.CAST
+end
 
 function BrainrotData.getById(id)
 	for _, def in ipairs(BrainrotData.CAST) do

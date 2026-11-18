@@ -4,6 +4,53 @@ The game is built and ready. Only the Roblox account owner can publish it —
 no password or login is ever needed from the agent. Do these steps in order
 on a Windows or Mac computer with Roblox Studio installed and signed in.
 
+## v3 changelog (branch v4)
+
+- **Trading (T)** — new `TradeService`: player-to-player offers (your
+  brainrot + optional cash for theirs), 60-second expiry, two-sided
+  confirm, server re-validates ownership at confirm time, 5% cash fee
+  (Trade Pass waives it). Inbox panel in the HUD; a brainrot in a live
+  offer cannot be stolen.
+- **Boss raids** — new `RaidService`: hourly boss (Mega Ohio Final Boss,
+  5,000 HP, 5 minutes) on a new raid pad; F to hit, slaps deal double;
+  pets / rebirths / Raid Potion boost damage; $50,000 pool splits by
+  damage share, top hitter wins a free Epic-or-better brainrot. Boss
+  Raid also joins the event rotation.
+- **Sky Plaza** — 12 plots (4 floating at y=40, +25% income), lift pad
+  and return pad, pillars, railings, star lamps; `BaseService.isOnPlot`
+  now checks Y so ground and sky plots never confuse each other.
+- **Coin rush minigame** — new `MinigameService`: every 3 minutes, 45
+  seconds, up to 12 clickable gold coins around the fountain ring
+  ($250 each, $5,000 top-collector bonus, best-score board).
+- **Teams (Y)** — new `TeamService`: create for $10,000, max 5 members,
+  shared vault paying $500/member/hour from deposits, team board by
+  combined earnings, leader succession, dissolve on last leave.
+- **Cast** — 15 new characters, 37 → 52, including two Transcendents
+  (Supreme Ohio Overlord $15,000/s, Mega Ohio Final Boss $18,000/s).
+- **Shop** — Raid Potion, Trade Pass, Sky Key; every 10th conveyor
+  spawn is a twice-as-fast Sky Express.
+- Screenshots were re-rendered fresh from the v3 build; `PLAY.json` now
+  carries `"version": 3` (place/universe ids still 0 — publish pending).
+
+## v2.5 changelog (branch v3)
+
+- **Pets (P)** — six purchasable companions (Milo the Moth to Void Kitten,
+  $2,500–$100,000 in-game cash, +10% to +50% income each). The equipped pet
+  follows the player; pets survive a rebirth and each one owned at rebirth
+  time adds +5% permanent income. A pet park sits in the east corner.
+- **Daily quests (J)** — three rotating quests a day (earn, buy, steal) with
+  cash rewards and a clean-sweep bonus; progress is tracked server-side and
+  a quest board stands west of the spawn pad.
+- **Events** — three new ones join Golden Hour, Brainrot Rain and Tsunami:
+  Meteor Shower (free brainrots crash onto random bases), Double Cash Hour
+  (2x income), Slime Invasion (pop slimes for +$750 each).
+- **Cast** — 10 new characters, 27 → 37, including The Algorithm
+  (Transcendent, $12,000/s).
+- **Rebirth milestones** — Boulevard Regular (3), Legend (5), Ohio Royalty
+  (10), each paying a cash bonus on the rebirth that reaches it.
+- Screenshots were re-rendered fresh from the v2.5 build; `PLAY.json` now
+  carries `"version": 2` (place/universe ids still 0 — publish pending).
+
 ## 0. Before you start
 
 - Your Roblox account must be at least 2 days old, in good standing, and past

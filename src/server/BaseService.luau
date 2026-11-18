@@ -106,16 +106,105 @@ end
 
 -- Is this point on the given player's own plot pad? Used by the tsunami
 -- (safe ground) and by the steal channel (home base).
+-- v3: the Y check matters now — sky plots 9-12 share plots 1-4's x/z,
+-- so a player standing on the ground under a sky plot must NOT count
+-- as standing on that sky plot (or vice versa).
 function BaseService.isOnPlot(position, plotIndex)
 	if plotIndex == 0 then
 		return false
 	end
 	local center = Config.PLOT_POSITIONS[plotIndex]
-	return math.abs(position.X - center.X) <= 12 and math.abs(position.Z - center.Z) <= 10
+	return math.abs(position.X - center.X) <= 12 and math.abs(position.Z - center.Z) <= 10 and math.abs(position.Y - center.Y) <= 6
+end
+
+-- v3: is this plot one of the Sky Plaza plots (9-12)?
+function BaseService.isSkyPlot(plotIndex)
+	return plotIndex >= Config.SKY_PLOT_FIRST_INDEX and plotIndex <= Config.PLOT_COUNT
+end
+
+-- v3: the income multiplier for a plot — 1.25 on the Sky Plaza, 1.0
+-- everywhere else. DataService.baseIncome reads this per brainrot.
+function BaseService.plotIncomeMultiplier(plotIndex)
+	if BaseService.isSkyPlot(plotIndex) then
+		return Config.SKY_PLOT_MULTIPLIER
+	end
+	return 1
+end
+
+-- v3: every plot index this player owns (their ground plot, plus a
+-- sky plot when they claimed one). Claim order is first-free, so a
+-- late joiner may hold only a sky plot.
+function BaseService.plotsOf(player)
+	local owned = {}
+	for i, plot in ipairs(plots) do
+		if plot.Owner == player then
+			table.insert(owned, i)
+		end
+	end
+	return owned
 end
 
 function BaseService.plotCenter(plotIndex)
 	return Config.PLOT_POSITIONS[plotIndex]
+end
+
+-- v2.5: how full a base is — used pedestals and the total (6). The
+-- meteor shower and the quest board read this to pick a base that can
+-- still take a brainrot.
+function BaseService.plotOccupancy(plotIndex)
+	local plot = plots[plotIndex]
+	if not plot then
+		return 0, 0
+	end
+	local used = 0
+	for j = 1, Config.PLOT_PEDESTALS do
+		if plot.Pedestals[j] ~= nil then
+			used += 1
+		end
+	end
+	return used, Config.PLOT_PEDESTALS
+end
+
+-- v2.5: is this base completely full?
+function BaseService.isPlotFull(plotIndex)
+	local used, total = BaseService.plotOccupancy(plotIndex)
+	return used >= total
+end
+
+-- v2.5: every plot index that currently has an owner, in plot order.
+function BaseService.plotsWithOwners()
+	local owned = {}
+	for i, plot in ipairs(plots) do
+		if plot.Owner ~= nil then
+			table.insert(owned, i)
+		end
+	end
+	return owned
+end
+
+-- v2.5: a random plot with a free pedestal, preferring owned bases so a
+-- meteor's free brainrot lands with a player. Returns 0 when every base
+-- is full (or no base exists yet) — the caller then falls back to the
+-- conveyor, so the brainrot is never lost.
+function BaseService.randomPlotWithFreePedestal()
+	local candidates = {}
+	for _, i in ipairs(BaseService.plotsWithOwners()) do
+		if not BaseService.isPlotFull(i) then
+			table.insert(candidates, i)
+		end
+	end
+	if #candidates > 0 then
+		return candidates[math.random(1, #candidates)]
+	end
+	for i = 1, Config.PLOT_COUNT do
+		if not BaseService.isPlotFull(i) then
+			table.insert(candidates, i)
+		end
+	end
+	if #candidates > 0 then
+		return candidates[math.random(1, #candidates)]
+	end
+	return 0
 end
 
 return BaseService

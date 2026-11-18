@@ -18,7 +18,7 @@
 // .DS_Store, .git) is left out of the copies below; the grader refuses an
 // entry whose output holds one.
 
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-roblox.ts';
@@ -71,6 +71,70 @@ const shots = readdirSync(join(out, 'screenshots')).filter((n) => !isDotted(n));
 if (shots.length < 3 || shots.length > 4) {
   fail(`expected 3 or 4 screenshots, found ${shots.length}`);
 }
+
+// v2 validation: the place must be a real binary Roblox place (Rojo's
+// output starts with the <roblox! binary magic), every screenshot must
+// fit the gate's 256 KiB cap, and PLAY.json must parse with a matching
+// url / place_id pair — a placeholder or a typo here refuses the entry.
+const placeBytes = readFileSync(join(out, 'game.rbxl'));
+if (placeBytes.length === 0 || placeBytes.subarray(0, 8).toString('ascii') !== '<roblox!') {
+  fail('game.rbxl is not a binary Roblox place (missing <roblox! magic)');
+}
+for (const shot of shots) {
+  const size = statSync(join(out, 'screenshots', shot)).size;
+  if (size > 262144) {
+    fail(`screenshot ${shot} is ${size} bytes, over the 256 KiB cap`);
+  }
+}
+const play = JSON.parse(readFileSync(join(out, 'PLAY.json'), 'utf8')) as {
+  url: string;
+  place_id: number;
+  universe_id: number;
+};
+if (typeof play.url !== 'string' || !play.url.startsWith('https://www.roblox.com/games/')) {
+  fail('PLAY.json url is not a Roblox games link');
+}
+if (play.url !== `https://www.roblox.com/games/${play.place_id}` && !play.url.startsWith(`https://www.roblox.com/games/${play.place_id}/`)) {
+  fail('PLAY.json url does not match its place_id');
+}
+if (!Number.isInteger(play.place_id) || !Number.isInteger(play.universe_id)) {
+  fail('PLAY.json place_id / universe_id must be integers');
+}
+const srcCount = readdirSync(join(out, 'src'), { recursive: true }).filter(
+  (n) => typeof n === 'string' && n.endsWith('.luau'),
+).length;
+
+// v3 validation: the four new services must exist as files (the Rojo
+// build maps src/server/ to ModuleScripts, so a missing file would
+// silently drop a whole system from the place), and the v3 cast must
+// be present in BrainrotData. Count the v3 lines so the build summary
+// shows what this version added over v2.5's 4,492 counted lines.
+const V3_SERVICES = ['TradeService', 'RaidService', 'MinigameService', 'TeamService'];
+for (const service of V3_SERVICES) {
+  if (!existsSync(join(out, 'src', 'server', `${service}.luau`))) {
+    fail(`missing v3 service src/server/${service}.luau`);
+  }
+}
+const brainrotData = readFileSync(join(out, 'src', 'shared', 'BrainrotData.luau'), 'utf8');
+const castCount = (brainrotData.match(/\{ id = "/g) ?? []).length;
+if (castCount < 52) {
+  fail(`expected 52 brainrots in BrainrotData, found ${castCount}`);
+}
+const v3LineCounts: Record<string, number> = {};
+for (const service of V3_SERVICES) {
+  const text = readFileSync(join(out, 'src', 'server', `${service}.luau`), 'utf8');
+  v3LineCounts[service] = text.split('\n').length - 1;
+}
+const v3ServiceLines = Object.values(v3LineCounts).reduce((a, b) => a + b, 0);
+
+// v3 build summary (stdout only — it never lands in /output, so both
+// grader runs stay byte-identical): what the entry hands in, at a glance.
+console.log(
+  `brainrot-boulevard v3: place ${placeBytes.length} bytes, ${srcCount} Luau scripts, ` +
+    `${shots.length} screenshots, PLAY place_id=${play.place_id} universe_id=${play.universe_id}, ` +
+    `${castCount} brainrots, v3 services ${v3ServiceLines} lines ` +
+    `(${V3_SERVICES.map((s) => `${s}=${v3LineCounts[s]}`).join(', ')})`,
+);
 
 // The scorer's own caps (from the kit's reference/gate.json): only
 // text_max_bytes shapes the dossier text; the other caps refuse an entry

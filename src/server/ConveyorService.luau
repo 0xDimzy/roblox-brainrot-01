@@ -19,16 +19,32 @@ local BaseService
 local WorldBuilder
 local BrainrotFactory
 local buyRemote
+-- v2.5: QuestService is optional here (it registers after this service in
+-- some boot orders), so the hook is guarded — a buy with no quest service
+-- still buys, it just feeds no quest.
+local QuestService
+-- v3: every 10th spawn is a Sky Express — a brainrot that walks the
+-- belt twice as fast, flagged so the client can show it streaking.
+-- It costs the same as any other brainrot; the speed is the thrill.
+local spawnCounter = 0
+local EXPRESS_EVERY = 10
+local EXPRESS_SPEED_MULT = 2
 
 local function spawnOne()
 	if #belt >= Config.CONVEYOR_MAX_BRAINROTS then
 		return
 	end
+	spawnCounter += 1
 	local def = BrainrotData.rollDef()
 	local mutationIndex = BrainrotData.rollMutation()
 	local model = BrainrotFactory.createBrainrot(def, mutationIndex)
 	model:SetAttribute("Price", BrainrotData.costOf(def))
 	model:SetAttribute("State", "Belt")
+	-- v3: every 10th spawn is a Sky Express — twice the belt speed.
+	if spawnCounter % EXPRESS_EVERY == 0 then
+		model:SetAttribute("Express", true)
+		model:SetAttribute("ExpressSpeed", EXPRESS_SPEED_MULT)
+	end
 	model:PivotTo(CFrame.new(Config.CONVEYOR_MIN_X, 3, Config.CONVEYOR_Z))
 	model.Parent = Workspace
 	table.insert(belt, model)
@@ -39,18 +55,24 @@ function ConveyorService.init(services)
 	BaseService = services.BaseService
 	WorldBuilder = services.WorldBuilder
 	BrainrotFactory = services.BrainrotFactory
+	QuestService = services.QuestService
 	buyRemote = services.Remotes.BuyBrainrot
 
 	-- The belt walk: every frame, each brainrot steps east; past the end
 	-- it despawns. Anchored while walking so physics never tips it over.
+	-- v3: Sky Express brainrots step twice as fast.
 	RunService.Heartbeat:Connect(function(dt)
 		for i = #belt, 1, -1 do
 			local model = belt[i]
 			if not model.Parent then
 				table.remove(belt, i)
 			else
+				local speed = Config.CONVEYOR_SPEED
+				if model:GetAttribute("Express") then
+					speed *= EXPRESS_SPEED_MULT
+				end
 				local pivot = model:GetPivot()
-				local nextX = pivot.Position.X + Config.CONVEYOR_SPEED * dt
+				local nextX = pivot.Position.X + speed * dt
 				if nextX >= Config.CONVEYOR_MAX_X then
 					model:Destroy()
 					table.remove(belt, i)
@@ -125,6 +147,11 @@ function ConveyorService.tryBuy(player, model)
 	model:SetAttribute("State", "Owned")
 	model:SetAttribute("Owner", player.Name)
 	DataService.addOwned(state, model)
+	state.Bought += 1 -- v2: feeds the leaderboard's bought count.
+	-- v2.5: every purchase feeds the daily "buy" quest.
+	if QuestService then
+		QuestService.addProgress(player, "buy", 1)
+	end
 	BaseService.placeOnPlot(plotIndex, model, WorldBuilder)
 
 	local def = BrainrotData.getById(model:GetAttribute("BrainrotId"))
@@ -139,6 +166,24 @@ function servicesAnnounce(state, player, text)
 	if announce then
 		announce:FireClient(player, text)
 	end
+end
+
+-- v3: spawn one brainrot straight onto the belt for a reward — the
+-- raid's top contributor sometimes gets a belt drop instead of a plot
+-- drop, and this is the hook RaidService would call for it. The
+-- brainrot is flagged as a reward so the client can spot it.
+function ConveyorService.spawnReward(def, mutationIndex)
+	if #belt >= Config.CONVEYOR_MAX_BRAINROTS then
+		return nil
+	end
+	local model = BrainrotFactory.createBrainrot(def, mutationIndex or BrainrotData.rollMutation())
+	model:SetAttribute("Price", BrainrotData.costOf(def))
+	model:SetAttribute("State", "Belt")
+	model:SetAttribute("Reward", true)
+	model:PivotTo(CFrame.new(Config.CONVEYOR_MIN_X, 3, Config.CONVEYOR_Z))
+	model.Parent = Workspace
+	table.insert(belt, model)
+	return model
 end
 
 -- For events: wash every belt brainrot away (the tsunami takes them).
