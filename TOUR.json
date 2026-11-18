@@ -1,0 +1,1 @@
+{"steps":[{"screenshot":"1-thumbnail.jpg"},{"keys":["E","P"],"screenshot":"2-play.jpg","wait_ms":1500},{"call":{"arg":"Tsunami","fn":"startEvent","module":"ServerScriptService.Server.EventService","on":"Server"},"keys":[],"screenshot":"3-event.jpg","wait_ms":1000}],"tour":1}
