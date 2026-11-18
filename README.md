@@ -14,7 +14,7 @@ the map.
 
 - **Buy** — brainrots walk the conveyor from the west gate. Walk up, press **E**,
   pay the price, and it walks to your base and starts earning $/second.
-- **Collect** — 52 original characters, Common to Transcendent, with Golden / Diamond /
+- **Collect** — 64 original characters, Common to Transcendent, with Golden / Diamond /
   Rainbow mutations (x2 / x5 / x10). Each has a name, a rarity and a $/s label
   floating over it.
 - **Pets (P)** — six companions (Milo the Moth to Void Kitten) bought with
@@ -75,6 +75,29 @@ the map.
   Sky Key ($5,000). Every 10th conveyor spawn is a Sky Express that walks
   the belt twice as fast.
 
+## What's new in v6
+
+- **Daily login rewards (D)** — come back every day and the Daily Shrine
+  east of the fountain pays out: a 7-day ladder from $2,500 on day 1 to a
+  $60,000 jackpot on day 7, plus a $25,000 milestone chest on every 7th
+  day in a row. Miss a day and the streak restarts at day 1. The panel
+  shows the live streak, today's reward, and the countdown to tomorrow.
+- **Shrine blessing** — claim while standing on the glowing Daily Shrine
+  pad (two gold pillars, one neon beacon) and the shrine adds +25% on top
+  of the day's cash. The server checks your position at claim time, so
+  the bonus is earned, not asked for.
+- **Cast** — 12 new characters, 52 → 64, across every rarity: Baron Butter,
+  Captain Ketchup, Lady Latte, Duke Donut Hole, Professor Pancake, Madame
+  Mustard, Sultan of Syrup, Queen Quiche, Doctor Dumpling, The Cereal
+  Killer, Grand Emperor of Ohio ($24,000/s) and Shrine Keeper Sam, the
+  Secret who watches your streak.
+- **Server** — `DailyRewardService` (RemoteFunction claim + status, streak
+  math, milestone chests, shrine blessing) wired into the bootstrap, with
+  streak fields in `DataService` and a `daily` table on the HUD snapshot.
+- **Tuning** — the whole ladder lives in `Config.DAILY_REWARD_LADDER`,
+  with the milestone day, milestone bonus, shrine position, shrine radius
+  and blessing rate beside it, so a balance pass is one edit.
+
 ## Layout
 
 - `main.ts` (Node 22, stdlib only) hands the game in: it copies `game.rbxl`,
@@ -85,7 +108,7 @@ the map.
   (`rojo build default.project.json --output game.rbxl`).
 - `src/shared/` — `Config` (all tuning, the 6 pets, event weights, rebirth
   milestones, v3 trade / raid / minigame / team tuning, 12 plots with 4 in
-  the Sky Plaza), `BrainrotData` (the 52-character cast,
+  the Sky Plaza), `BrainrotData` (the 64-character cast,
   rarities, mutations), `Utils` (money formatting, weighted picks, clamps,
   duration / percent formatting).
 - `src/server/` — one service per job: `DataService` (player state + income

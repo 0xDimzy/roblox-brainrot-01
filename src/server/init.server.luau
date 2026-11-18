@@ -62,6 +62,7 @@ local TradeService = require(script.Parent:WaitForChild("TradeService"))
 local RaidService = require(script.Parent:WaitForChild("RaidService"))
 local MinigameService = require(script.Parent:WaitForChild("MinigameService"))
 local TeamService = require(script.Parent:WaitForChild("TeamService"))
+local DailyRewardService = require(script.Parent:WaitForChild("DailyRewardService"))
 
 local services = {
 	DataService = DataService,
@@ -80,6 +81,7 @@ local services = {
 	RaidService = RaidService,
 	MinigameService = MinigameService,
 	TeamService = TeamService,
+	DailyRewardService = DailyRewardService,
 	Remotes = Remotes,
 }
 
@@ -97,6 +99,7 @@ TradeService.init(services)
 RaidService.init(services)
 MinigameService.init(services)
 TeamService.init(services)
+DailyRewardService.init(services)
 DataService.startIncomeLoop()
 
 local function giveSlapTool(player)
@@ -167,4 +170,4 @@ task.spawn(function()
 	end
 end)
 
-print("Brainrot Boulevard v3 is live: 12 plots (4 in the Sky Plaza), a conveyor, 52 brainrots, 6 pets, daily quests, 6 events, a leaderboard, trading, boss raids, coin rushes and teams.")
+print("Brainrot Boulevard v6 is live: 12 plots (4 in the Sky Plaza), a conveyor, 64 brainrots, 6 pets, daily quests, daily login rewards at the shrine, 6 events, a leaderboard, trading, boss raids, coin rushes and teams.")

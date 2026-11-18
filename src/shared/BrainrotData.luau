@@ -80,10 +80,25 @@ BrainrotData.CAST = {
 	{ id = "the-intern", name = "The Intern", rarity = 6, rate = 4200, color = Color3.fromRGB(200, 200, 220), joke = "Unpaid. Unstoppable. Unbothered." },
 	{ id = "supreme-ohio-overlord", name = "Supreme Ohio Overlord", rarity = 7, rate = 15000, color = Color3.fromRGB(255, 215, 0), joke = "Ohio's final form. It has a crown." },
 	{ id = "mega-ohio-boss", name = "Mega Ohio Final Boss", rarity = 7, rate = 18000, color = Color3.fromRGB(255, 60, 60), joke = "The raid boss. The whole raid." },
+	-- v6 cast: 12 more characters, 52 -> 64, across every rarity,
+	-- including a new Secret who only shows up at the Daily Shrine.
+	{ id = "baron-butter", name = "Baron Butter", rarity = 1, rate = 18, color = Color3.fromRGB(255, 220, 90), joke = "Melts under pressure. Still rich." },
+	{ id = "captain-ketchup", name = "Captain Ketchup", rarity = 1, rate = 18, color = Color3.fromRGB(220, 40, 40), joke = "Squeezes every last cent." },
+	{ id = "lady-latte", name = "Lady Latte", rarity = 2, rate = 38, color = Color3.fromRGB(200, 150, 100), joke = "Foams at the mouth. Pays in beans." },
+	{ id = "duke-donut-hole", name = "Duke Donut Hole", rarity = 2, rate = 44, color = Color3.fromRGB(230, 170, 130), joke = "The hole is the whole point." },
+	{ id = "professor-pancake", name = "Professor Pancake", rarity = 3, rate = 170, color = Color3.fromRGB(240, 200, 120), joke = "Flips the market. Stacks the cash." },
+	{ id = "madame-mustard", name = "Madame Mustard", rarity = 3, rate = 195, color = Color3.fromRGB(240, 200, 40), joke = "Cuts through the noise. And the bill." },
+	{ id = "sultan-syrup", name = "Sultan of Syrup", rarity = 4, rate = 480, color = Color3.fromRGB(180, 110, 40), joke = "Sticky fingers. Sticky profits." },
+	{ id = "queen-quiche", name = "Queen Quiche", rarity = 4, rate = 540, color = Color3.fromRGB(255, 210, 140), joke = "Bakes the books. Eats the evidence." },
+	{ id = "doctor-dumpling", name = "Doctor Dumpling", rarity = 5, rate = 1500, color = Color3.fromRGB(255, 190, 160), joke = "Steamed. Stuffed. Solvent." },
+	{ id = "the-cereal-killer", name = "The Cereal Killer", rarity = 6, rate = 6000, color = Color3.fromRGB(255, 80, 80), joke = "Part of a balanced breakfast." },
+	{ id = "grand-emperor-ohio", name = "Grand Emperor of Ohio", rarity = 7, rate = 24000, color = Color3.fromRGB(255, 215, 0), joke = "Ohio kneels. The rent does not." },
+	{ id = "shrine-keeper-sam", name = "Shrine Keeper Sam", rarity = 6, rate = 8000, color = Color3.fromRGB(120, 255, 200), joke = "Guards the shrine. Counts your streak." },
 }
 
 -- v2.5: how many characters are in the cast (37 after the v2.5 additions).
 -- v3: 52 after the v3 additions — 15 new faces, two of them Transcendent.
+-- v6: 64 after the v6 additions — 12 new faces, one of them a shrine keeper.
 function BrainrotData.count()
 	return #BrainrotData.CAST
 end

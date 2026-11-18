@@ -26,6 +26,7 @@ local tradeSnapshotFn = nil
 local raidSnapshotFn = nil
 local minigameSnapshotFn = nil
 local teamSnapshotFn = nil
+local dailySnapshotFn = nil
 
 function DataService.setIncomeHook(fn)
 	incomeHook = fn
@@ -53,6 +54,12 @@ end
 
 function DataService.setTeamSnapshot(fn)
 	teamSnapshotFn = fn
+end
+
+-- v6: DailyRewardService registers its snapshot the same way, so the
+-- HUD's daily panel reads streak / claim state from the heartbeat.
+function DataService.setDailySnapshot(fn)
+	dailySnapshotFn = fn
 end
 
 function DataService.setEventMultiplier(mult)
@@ -101,6 +108,12 @@ function DataService.newState(player)
 		MinigameBest = 0,
 		-- v3: permanent raid damage bonus from rebirths (+5% each).
 		RaidBonus = 0,
+		-- v6: daily login rewards — the live streak, the last day key
+		-- claimed, the unix time of that claim, and lifetime claims.
+		DailyStreak = 0,
+		DailyClaimedDay = "",
+		DailyLastClaim = 0,
+		DailyTotalClaims = 0,
 	}
 	states[player] = state
 
@@ -272,6 +285,9 @@ function DataService.snapshot(state)
 		raid = raidSnapshotFn and raidSnapshotFn(state.Player) or { active = false, bossName = "", hp = 0, maxHp = 0, timeLeft = 0, myDamage = 0, myShare = 0, top = {}, raidNumber = 0 },
 		minigame = minigameSnapshotFn and minigameSnapshotFn(state.Player) or { active = false, timeLeft = 0, coinsLeft = 0, myScore = 0, myBest = 0, top = {}, rushNumber = 0 },
 		team = teamSnapshotFn and teamSnapshotFn(state.Player) or { team = nil, top = {}, createCost = 10000, maxMembers = 5 },
+		-- v6: daily login rewards for the HUD panel (D) — streak, claim
+		-- state, next reward and the countdown to tomorrow.
+		daily = dailySnapshotFn and dailySnapshotFn(state) or { streak = 0, claimedToday = false, canClaim = true, nextDay = 1, nextCash = 2500, nextMilestone = 0, nextIn = 0, totalClaims = 0, ladder = {} },
 		-- v3: the potion / pass / sky flags the client needs (lift
 		-- access, raid damage display, trade fee display).
 		raidPotionLeft = math.max(0, (state.RaidPotionUntil or 0) - os.clock()),

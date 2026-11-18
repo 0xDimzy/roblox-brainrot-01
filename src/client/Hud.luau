@@ -68,6 +68,14 @@ local teamCreateButton
 local teamJoinButton
 local teamLeaveButton
 local teamDepositButton
+-- v6: daily rewards panel (D) — streak, next reward, countdown, claim.
+local dailyFrame
+local dailyStreakLabel
+local dailyRewardLabel
+local dailyCountdownLabel
+local dailyClaimButton
+local dailyLadderLabels = {}
+local dailyRemote
 
 local function label(parent, name, text, size, color, font)
 	local l = Instance.new("TextLabel")
@@ -438,6 +446,85 @@ function Hud.build(remotes)
 		questClaimButtons[i] = claim
 	end
 
+	-- v6 daily rewards panel, left side under the quests (D to open):
+	-- the live streak, today's reward, the countdown to tomorrow, a
+	-- claim button, and the 7-day ladder so the jackpot is always visible.
+	dailyFrame = Instance.new("Frame")
+	dailyFrame.Name = "DailyRewards"
+	dailyFrame.AnchorPoint = Vector2.new(0, 0)
+	dailyFrame.Position = UDim2.new(0, 16, 0, 472)
+	dailyFrame.Size = UDim2.new(0, 300, 0, 288)
+	dailyFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+	dailyFrame.BackgroundTransparency = 0.1
+	dailyFrame.BorderSizePixel = 0
+	dailyFrame.Visible = false
+	local dailyCorner = Instance.new("UICorner")
+	dailyCorner.CornerRadius = UDim.new(0, 12)
+	dailyCorner.Parent = dailyFrame
+	dailyFrame.Parent = gui
+	local dailyTitle = label(dailyFrame, "DailyTitle", "DAILY REWARDS  (D to close)", 24, Color3.fromRGB(255, 215, 0))
+	dailyTitle.Position = UDim2.new(0, 0, 0, 8)
+	dailyTitle.Size = UDim2.new(1, 0, 0, 32)
+	dailyTitle.Parent = dailyFrame
+	dailyStreakLabel = label(dailyFrame, "DailyStreak", "Streak: 0 days", 20, Color3.fromRGB(120, 255, 140))
+	dailyStreakLabel.Position = UDim2.new(0, 12, 0, 44)
+	dailyStreakLabel.Size = UDim2.new(1, -24, 0, 26)
+	dailyStreakLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dailyStreakLabel.Parent = dailyFrame
+	dailyRewardLabel = label(dailyFrame, "DailyReward", "Day 1: +$2,500", 18, Color3.fromRGB(255, 230, 120))
+	dailyRewardLabel.Position = UDim2.new(0, 12, 0, 70)
+	dailyRewardLabel.Size = UDim2.new(1, -24, 0, 24)
+	dailyRewardLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dailyRewardLabel.Parent = dailyFrame
+	dailyCountdownLabel = label(dailyFrame, "DailyCountdown", "Ready to claim!", 16, Color3.fromRGB(200, 220, 255))
+	dailyCountdownLabel.Position = UDim2.new(0, 12, 0, 94)
+	dailyCountdownLabel.Size = UDim2.new(1, -24, 0, 22)
+	dailyCountdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dailyCountdownLabel.Parent = dailyFrame
+	dailyClaimButton = Instance.new("TextButton")
+	dailyClaimButton.Name = "DailyClaim"
+	dailyClaimButton.Position = UDim2.new(0, 12, 0, 120)
+	dailyClaimButton.Size = UDim2.new(1, -24, 0, 30)
+	dailyClaimButton.BackgroundColor3 = Color3.fromRGB(40, 150, 70)
+	dailyClaimButton.Text = "CLAIM TODAY'S REWARD"
+	dailyClaimButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	dailyClaimButton.TextSize = 17
+	dailyClaimButton.Font = Enum.Font.FredokaOne
+	dailyClaimButton.Parent = dailyFrame
+	local dailyLadderTitle = label(dailyFrame, "DailyLadderTitle", "7-day ladder — stand on the shrine pad for +25%!", 14, Color3.fromRGB(200, 220, 255))
+	dailyLadderTitle.Position = UDim2.new(0, 12, 0, 156)
+	dailyLadderTitle.Size = UDim2.new(1, -24, 0, 20)
+	dailyLadderTitle.TextXAlignment = Enum.TextXAlignment.Left
+	dailyLadderTitle.TextWrapped = true
+	dailyLadderTitle.Parent = dailyFrame
+	for i = 1, 7 do
+		local rung = label(dailyFrame, "DailyLadder" .. tostring(i), "Day " .. tostring(i), 14, Color3.fromRGB(200, 200, 200))
+		rung.Position = UDim2.new(0, 12, 0, 178 + (i - 1) * 15)
+		rung.Size = UDim2.new(1, -24, 0, 15)
+		rung.TextXAlignment = Enum.TextXAlignment.Left
+		rung.Parent = dailyFrame
+		dailyLadderLabels[i] = rung
+	end
+
+	-- v6: the DAILY button in the top bar opens the rewards panel.
+	local dailyButton = Instance.new("TextButton")
+	dailyButton.Name = "DailyButton"
+	dailyButton.Size = UDim2.new(0, 110, 0, 44)
+	dailyButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+	dailyButton.BackgroundTransparency = 0.15
+	dailyButton.BorderSizePixel = 0
+	dailyButton.Text = "DAILY"
+	dailyButton.TextColor3 = Color3.fromRGB(255, 215, 0)
+	dailyButton.TextSize = 22
+	dailyButton.Font = Enum.Font.FredokaOne
+	local dailyButtonCorner = Instance.new("UICorner")
+	dailyButtonCorner.CornerRadius = UDim.new(0, 10)
+	dailyButtonCorner.Parent = dailyButton
+	dailyButton.Parent = topBar
+	dailyButton.MouseButton1Click:Connect(function()
+		Hud.toggleDaily()
+	end)
+
 	-- v3 trade panel, right side overlay (T to open): the inbox. Three
 	-- incoming rows, each with Accept / Decline / Confirm, plus the
 	-- outgoing list and a hint for how to send an offer (stand near a
@@ -747,6 +834,23 @@ function Hud.build(remotes)
 	remotes.LeaderboardUpdate.OnClientEvent:Connect(function(rows)
 		Hud.updateLeaderboard(rows)
 	end)
+	-- v6: the daily rewards RemoteFunction — the claim button invokes it
+	-- and the server answers with the paid amount or the reason it said no.
+	dailyRemote = remotes:WaitForChild("DailyReward")
+	dailyClaimButton.MouseButton1Click:Connect(function()
+		if not dailyRemote then
+			return
+		end
+		local result = dailyRemote:InvokeServer("claim")
+		if result and result.ok then
+			Hud.toast(result.message or "Daily reward claimed!")
+			if result.status then
+				Hud.updateDaily(result.status)
+			end
+		elseif result then
+			Hud.toast(result.message or "Could not claim yet.")
+		end
+	end)
 end
 
 -- v2: fill the leaderboard panel from the server's top-5 broadcast.
@@ -773,6 +877,52 @@ function Hud.toggleQuests()
 	questsFrame.Visible = not questsFrame.Visible
 	if questsFrame.Visible then
 		petsFrame.Visible = false
+	end
+end
+
+-- v6: toggle the daily rewards panel (D). Opening it hides the quests
+-- panel so the two left-side overlays never stack on top of each other.
+function Hud.toggleDaily()
+	dailyFrame.Visible = not dailyFrame.Visible
+	if dailyFrame.Visible then
+		questsFrame.Visible = false
+	end
+end
+
+-- v6: refresh the daily panel from the snapshot's daily table — streak,
+-- next reward, countdown, claim button state, and the ladder rows.
+function Hud.updateDaily(dailyData)
+	if not dailyData then
+		return
+	end
+	local streak = dailyData.streak or 0
+	dailyStreakLabel.Text = "Streak: " .. tostring(streak) .. (streak == 1 and " day" or " days") .. "  ·  " .. tostring(dailyData.totalClaims or 0) .. " claimed ever"
+	local nextDay = dailyData.nextDay or 1
+	local rewardText = "Day " .. tostring(nextDay) .. ": +" .. Utils.formatMoney(dailyData.nextCash or 0)
+	if (dailyData.nextMilestone or 0) > 0 then
+		rewardText = rewardText .. "  + milestone chest +" .. Utils.formatMoney(dailyData.nextMilestone)
+	end
+	dailyRewardLabel.Text = rewardText
+	if dailyData.claimedToday then
+		dailyCountdownLabel.Text = "Next claim in " .. Utils.formatDuration(dailyData.nextIn or 0)
+		dailyClaimButton.Text = "CLAIMED — COME BACK TOMORROW"
+		dailyClaimButton.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+	else
+		dailyCountdownLabel.Text = "Ready to claim! Stand on the shrine pad for +25%."
+		dailyClaimButton.Text = "CLAIM TODAY'S REWARD"
+		dailyClaimButton.BackgroundColor3 = Color3.fromRGB(40, 150, 70)
+	end
+	for i, rung in ipairs(dailyLadderLabels) do
+		local entry = dailyData.ladder and dailyData.ladder[i]
+		if entry then
+			local marker = ""
+			if i == nextDay and not dailyData.claimedToday then
+				marker = "  <== today"
+			elseif i <= streak then
+				marker = "  (done)"
+			end
+			rung.Text = "Day " .. tostring(i) .. ": +" .. Utils.formatMoney(entry.cash) .. marker
+		end
 	end
 end
 
@@ -1062,6 +1212,8 @@ function Hud.update(snapshot)
 	-- v2.5: pets and quests panels refresh from the same snapshot.
 	Hud.updatePets(snapshot.pets)
 	Hud.updateQuests(snapshot.quests)
+	-- v6: the daily rewards panel refreshes from the same snapshot.
+	Hud.updateDaily(snapshot.daily)
 	-- v3: trade, raid, minigame and team panels refresh from the same
 	-- snapshot, through the same once-a-second heartbeat.
 	Hud.updateTrade(snapshot.trade)

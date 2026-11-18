@@ -1,5 +1,6 @@
 // Brainrot Boulevard — make.fun roblox-brainrot-01 entrypoint (Node 22,
-// standard library only). The game is the Rojo project in this directory:
+// standard library only). v6 adds the daily login rewards: the DailyRewardService
+// with its 7-day ladder, 12 new brainrots (52 -> 64), and the Daily Shrine pad.
 // `rojo build default.project.json --output game.rbxl` turns src/ and
 // default.project.json into game.rbxl, and this program hands the entry in
 // by copying game.rbxl, src/, screenshots/ and PLAY.json next to this file

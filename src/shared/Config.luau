@@ -188,6 +188,25 @@ Config.EVENT_INTERVAL_SECONDS = 90
 Config.EVENT_DURATION_SECONDS = 60
 Config.TSUNAMI_SWEEP_SECONDS = 12
 
+-- v6 daily login rewards: the 7-day ladder at the Daily Shrine, east of
+-- the fountain. Each day pays more than the last; day 7 is the jackpot,
+-- and every 7th day in a row adds the milestone chest on top. Claim on
+-- the shrine pad and the shrine blesses the day's cash with +25%.
+Config.DAILY_REWARD_LADDER = {
+	{ day = 1, cash = 2500 },
+	{ day = 2, cash = 5000 },
+	{ day = 3, cash = 9000 },
+	{ day = 4, cash = 15000 },
+	{ day = 5, cash = 24000 },
+	{ day = 6, cash = 38000 },
+	{ day = 7, cash = 60000 },
+}
+Config.DAILY_REWARD_MILESTONE_DAY = 7
+Config.DAILY_REWARD_MILESTONE_BONUS = 25000
+Config.DAILY_SHRINE_POSITION = Vector3.new(30, 1, 12)
+Config.DAILY_SHRINE_RADIUS = 8
+Config.DAILY_SHRINE_BLESSING = 0.25
+
 -- Spawn
 Config.SPAWN_POSITION = Vector3.new(0, 3, 45)
 
